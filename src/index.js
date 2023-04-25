@@ -9,6 +9,12 @@ const express = require('express');
 const controllers = require('./api/controller');
 const pack = require('../package.json');
 
+const { BASIQ_API_KEY } = process.env;
+
+if (!BASIQ_API_KEY) {
+	throw Error('Missing BASIQ_API_KEY environment variable');
+}
+
 const port = process.env.PORT || 3000;
 
 const app = express();
