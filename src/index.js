@@ -34,3 +34,6 @@ const server = app.listen(port);
 server.on('listening', () => {
 	console.log(`${pack.name} server listening on port ${port}, App version ${pack.version}`);
 });
+
+// load Cron service for periodic user connections refreshing
+require('./service/Cron');

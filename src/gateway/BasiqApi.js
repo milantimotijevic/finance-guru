@@ -205,8 +205,23 @@ const refreshConnections = async (userId) => {
     }
 };
 
+const getUsers = async () => {
+    const access_token = await getToken();
+    const result = await axios.get(
+        `${BASIQ_HOSTNAME}/users`,
+        {
+            headers: {
+                'Authorization': `Bearer ${access_token}`,
+            },
+        }
+    );
+
+    return result.data.data;
+};
+
 module.exports = {
     getTransactions,
     getHealthCheck,
     refreshConnections,
+    getUsers,
 };
