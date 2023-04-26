@@ -5,7 +5,7 @@ const getAllTransactions = async () => {
 };
 
 const getStatistics = async () => {
-    return {};
+    return BasiqApi.getToken();
 };
 
 module.exports = {
