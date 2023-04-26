@@ -64,7 +64,7 @@ async function getTransactionsBatch(url) {
     };
 };
 
-async function getTransactions(userId) {
+const getTransactions = async (userId) => {
     let transactions = [];
     let batchUrl = `${BASIQ_HOSTNAME}/users/${userId}/transactions`;
 

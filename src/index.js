@@ -35,5 +35,7 @@ server.on('listening', () => {
 	console.log(`${pack.name} server listening on port ${port}, App version ${pack.version}`);
 });
 
-// load Cron service for periodic user connections refreshing
+// load Cron service for periodic users connections refreshing
 require('./service/Cron');
+
+// TODO unit tests
