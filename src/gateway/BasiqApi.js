@@ -1,4 +1,5 @@
 const axios = require('axios');
+const Logger = require('../util/Logger');
 
 const { BASIQ_HOSTNAME, BASIQ_API_KEY } = process.env;
 
@@ -39,6 +40,40 @@ async function getToken() {
     return accessTokenWrapper.accessToken;
 }
 
+async function getTransactionsBatch (url) {
+    const access_token = await getToken();
+
+    Logger.info(`Fetching transaction batch from ${url}`);
+    const response = await axios.get(
+        url,
+        {
+            headers: {
+                'Authorization': `Bearer ${access_token}`,
+            },
+        }
+    );
+
+    return {
+        batch: response.data ? response.data.data : [],
+        nextBatchUrl: response.data && response.data.links ? response.data.links.next : undefined,
+    };
+};
+
+const getTransactions = async (userId) => {
+    let transactions = [];
+    let batchUrl = `${BASIQ_HOSTNAME}/users/${userId}/transactions`;
+
+    do {
+        const { batch, nextBatchUrl } = await getTransactionsBatch(batchUrl);
+        if (batch.length > 0) {
+            transactions = transactions.concat(batch);
+        }
+        batchUrl = nextBatchUrl;
+    } while (batchUrl);
+
+    return transactions;
+};
+
 module.exports = {
-    getToken,
+    getTransactions,
 };

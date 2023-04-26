@@ -1,14 +1,9 @@
 const BasiqApi = require('../gateway/BasiqApi');
 
-const getAllTransactions = async () => {
-    return {};
-};
-
-const getStatistics = async () => {
-    return BasiqApi.getToken();
+const getStatistics = async (userId) => {
+    return BasiqApi.getTransactions(userId);
 };
 
 module.exports = {
-    getAllTransactions,
     getStatistics,
 };
