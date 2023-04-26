@@ -2,14 +2,13 @@ const auth = require('../middleware/auth');
 const TransactionService = require('../../service/Transaction');
 
 const applyRoutes = (app) => {
-    // fetch transaction statistics (spending averages) for a user
     app.get(
-        '/transaction/:userId/statistics',
+        '/transaction/:userId/cost-statistics',
         auth(),
         async (req, res, next) => {
             try {
                 const { userId } = req.params;
-                const result = await TransactionService.getStatistics(userId);
+                const result = await TransactionService.getCostStatistics(userId);
                 return res.json(result);
             } catch (err) {
                 console.log(err);

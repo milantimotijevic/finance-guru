@@ -42,6 +42,7 @@ async function getToken() {
 }
 
 async function getTransactionsBatch (url) {
+    // TODO implement retry mechanism
     const access_token = await getToken();
 
     Logger.info(`Fetching transactions batch from ${url}`);
@@ -60,7 +61,7 @@ async function getTransactionsBatch (url) {
     };
 };
 
-async function getTransactions (userId){
+async function getTransactions (userId) {
     let transactions = [];
     let batchUrl = `${BASIQ_HOSTNAME}/users/${userId}/transactions`;
 
