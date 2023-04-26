@@ -4,7 +4,7 @@ const TransactionService = require('../../service/Transaction');
 const applyRoutes = (app) => {
     // fetch transaction statistics (spending averages) for a user
     app.get(
-        '/transaction/:userId/stats',
+        '/transaction/:userId/statistics',
         auth(),
         async (req, res, next) => {
             try {

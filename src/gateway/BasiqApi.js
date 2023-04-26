@@ -25,7 +25,7 @@ async function fetchToken() {
 
 async function getToken() {
     const oneHourAgo = new Date();
-    oneHourAgo.setMinutes(oneHourAgo.getMinutes() - 59);
+    oneHourAgo.setMinutes(oneHourAgo.getMinutes() - 58);
 
     if (!accessTokenWrapper || !accessTokenWrapper.expires || (oneHourAgo > accessTokenWrapper.expires)) {
         const tokenResponse = await fetchToken();
@@ -35,6 +35,7 @@ async function getToken() {
             accessToken: tokenResponse.access_token,
             expires,
         };
+        Logger.info('Fetched new access_token');
     }
 
     return accessTokenWrapper.accessToken;
@@ -43,7 +44,7 @@ async function getToken() {
 async function getTransactionsBatch (url) {
     const access_token = await getToken();
 
-    Logger.info(`Fetching transaction batch from ${url}`);
+    Logger.info(`Fetching transactions batch from ${url}`);
     const response = await axios.get(
         url,
         {
@@ -59,7 +60,7 @@ async function getTransactionsBatch (url) {
     };
 };
 
-const getTransactions = async (userId) => {
+async function getTransactions (userId){
     let transactions = [];
     let batchUrl = `${BASIQ_HOSTNAME}/users/${userId}/transactions`;
 
