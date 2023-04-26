@@ -70,7 +70,8 @@ async function getTransactions (userId) {
 
     // track how many times a single batch fetch has been retried
     let retries = 0;
-    do {
+    // keep fetching until we no longer have "batchUrl" for the next batch
+    while (batchUrl) {
         try {
             const { batch, nextBatchUrl } = await getTransactionsBatch(batchUrl);
             if (batch.length > 0) {
@@ -91,9 +92,9 @@ async function getTransactions (userId) {
                 retries++;
             }
         }
-    } while (batchUrl);
-    // all batches complete
+    }
 
+    // all batches complete
     return transactions;
 };
 
@@ -125,7 +126,24 @@ const getHealthCheck = async () => {
     return state;
 };
 
+// poll BasiqAPI until job completion confirmation is received
+async function awaitJobCompletion(jobId) {
+    let retries = 0;
+
+    try {
+
+    } catch (err) {
+
+    }
+}
+
+// instruct BasiqAPI to fetch the latest transaction data for this user
+const refreshConnections = (userId) => {
+
+};
+
 module.exports = {
     getTransactions,
     getHealthCheck,
+    refreshConnections,
 };
