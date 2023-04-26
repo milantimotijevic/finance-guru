@@ -11,9 +11,9 @@ const getCostStatistics = async (userId) => {
 
     transactions.forEach(transaction => {
         if (transaction.direction === 'debit') {
-            const debitCategory = transaction.subClass ? transaction.subClass.code : 'other';
-            if (!debits.categories[debitCategory]) {
-                debits.categories[debitCategory] = {
+            const debitCategoryName = transaction.subClass ? transaction.subClass.code : 'other';
+            if (!debits.categories[debitCategoryName]) {
+                debits.categories[debitCategoryName] = {
                     title: transaction.subClass.title,
                     count: 0,
                     total: 0,
@@ -22,9 +22,9 @@ const getCostStatistics = async (userId) => {
             }
 
             debits.count += 1;
-            debits.categories[debitCategory].count += 1;
+            debits.categories[debitCategoryName].count += 1;
             debits.total += Math.abs(transaction.amount);
-            debits.categories[debitCategory].total += Math.abs(transaction.amount);
+            debits.categories[debitCategoryName].total += Math.abs(transaction.amount);
         }
     });
 
