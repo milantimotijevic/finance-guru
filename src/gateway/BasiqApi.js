@@ -46,7 +46,7 @@ async function getToken() {
 }
 
 // url can either be "bare" or contain a pagination pointer in query param
-async function getTransactionsBatch (url) {
+async function getTransactionsBatch(url) {
     const access_token = await getToken();
     Logger.info(`Fetching transactions batch from ${url}`);
     const response = await axios.get(
@@ -64,7 +64,7 @@ async function getTransactionsBatch (url) {
     };
 };
 
-async function getTransactions (userId) {
+async function getTransactions(userId) {
     let transactions = [];
     let batchUrl = `${BASIQ_HOSTNAME}/users/${userId}/transactions`;
 
@@ -126,20 +126,83 @@ const getHealthCheck = async () => {
     return state;
 };
 
-// poll BasiqAPI until job completion confirmation is received
-async function awaitJobCompletion(jobId) {
+/**
+ * @deprecated
+ * Iterate over steps and ensure the target ones are complete
+ */
+function relevantStepsCompleted(jobsData, stepTitle) {
+    for (let i = 0; i < jobsData.length; i++) {
+        const job = jobsData[i];
+        for (let j = 0; j < job.steps.length; j++) {
+            const step = jobsData[i].steps[j];
+            if (step.title === stepTitle && step.status !== 'success') {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @deprecated
+ * Poll BasiqAPI and ensure all relevant jobs are completed
+ */
+async function awaitJobsCompletion(jobIds) {
     let retries = 0;
 
-    try {
+    while (retries < 30) {
+        try {
+            const access_token = await getToken();
 
-    } catch (err) {
+            // create a promise for each job
+            const promises = jobIds.map(jobId => axios.get(`${BASIQ_HOSTNAME}/jobs/${jobId}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`,
+                },
+            }));
 
+            // await all promises in parallel
+            const results = await Promise.all(promises);
+            const jobsData = results.map(result => result.data);
+
+            // ensure at least 'retrieve-transactions' jobs are complete for all connections
+            if (!relevantStepsCompleted(jobsData, 'retrieve-transactions')) {
+                retries++;
+                // force a short deplay
+                await new Promise((resolve) => setTimeout(resolve, 200));
+            } else {
+                return true; // signifies the jobs are complete
+            }
+
+        } catch (err) {
+            retries++;
+            Logger.warn(`Failed to status for one or more jobs. Error: ${err}`);
+            // force a short delay
+            await new Promise((resolve) => setTimeout(resolve, 200));
+        }
     }
+
+    return false; // we waited long enough, one or more jobs are still incomplete
 }
 
 // instruct BasiqAPI to fetch the latest transaction data for this user
-const refreshConnections = (userId) => {
-
+const refreshConnections = async (userId) => {
+    try {
+        const access_token = await getToken();
+        await axios.post(
+            `${BASIQ_HOSTNAME}/users/${userId}/connections/refresh`,
+            null,
+            {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`,
+                },
+            }
+        );
+    } catch (err) {
+        Logger.error(`Failed to refresh connections for user ${userId}: ${err}`);
+    }
 };
 
 module.exports = {

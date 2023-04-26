@@ -1,7 +1,7 @@
 const BasiqApi = require('../gateway/BasiqApi');
 
 const getCostStatistics = async (userId) => {
-    // TODO refresh connections
+    await BasiqApi.refreshConnections(userId); // TODO put in cron
     // fetch all transactions for this user
     const transactions = await BasiqApi.getTransactions(userId);
     // init stats object to be populated during later iteration over transactions
