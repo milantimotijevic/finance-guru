@@ -1,6 +1,7 @@
 const auth = require('../middleware/auth');
 const TransactionService = require('../../service/Transaction');
 
+// TODO validation
 const applyRoutes = (app) => {
     app.get(
         '/transaction/:userId/cost-statistics',

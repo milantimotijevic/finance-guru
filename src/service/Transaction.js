@@ -1,7 +1,10 @@
 const BasiqApi = require('../gateway/BasiqApi');
 
 const getCostStatistics = async (userId) => {
+    // TODO refresh connections
+    // fetch all transactions for this user
     const transactions = await BasiqApi.getTransactions(userId);
+    // init stats object to be populated during later iteration over transactions
     const debits = {
         count: 0,
         total: 0,
@@ -9,6 +12,7 @@ const getCostStatistics = async (userId) => {
         categories: {},
     };
 
+    // iterate over transactions and calculate count + $ total for all debits and each debit category
     transactions.forEach(transaction => {
         if (transaction.direction === 'debit') {
             const debitCategoryName = transaction.subClass ? transaction.subClass.code : 'other';
@@ -27,7 +31,7 @@ const getCostStatistics = async (userId) => {
             debits.categories[debitCategoryName].total += Math.abs(transaction.amount);
         }
     });
-
+    // calculate average for all debits and each debit category separately and round all numbers
     debits.average = Math.round(debits.total / debits.count * 100) / 100;
     debits.total = Math.round(debits.total * 100) / 100;
 
