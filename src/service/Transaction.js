@@ -31,8 +31,8 @@ const getCostStatistics = async (userId) => {
     debits.average = Math.round(debits.total / debits.count * 100) / 100;
     debits.total = Math.round(debits.total * 100) / 100;
 
-    Object.keys(debits.categories).forEach(categoryKey => {
-        const debitCategory = debits.categories[categoryKey];
+    Object.keys(debits.categories).forEach(debitCategoryName => {
+        const debitCategory = debits.categories[debitCategoryName];
         debitCategory.average = Math.round(debitCategory.total / debitCategory.count * 100) / 100;
         debitCategory.total = Math.round(debitCategory.total * 100) / 100;
     });

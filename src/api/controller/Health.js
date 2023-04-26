@@ -1,14 +1,16 @@
 const pack = require('../../../package.json');
+const HealthService = require('../../service/Health');
 
 const applyRoutes = (app) => {
     app.get(
         '/health',
         async (req, res, next) => {
             try {
+                const BasiqApiHealth = await HealthService.getHealthCheck();
                 return res.json({
-                    service: 'Finance Guru',
+                    service: pack.name,
                     server: 'up',
-                    basiqApi: 'up', // TODO check
+                    basiqApi: BasiqApiHealth,
                     version: pack.version,
                 });
             } catch (err) {

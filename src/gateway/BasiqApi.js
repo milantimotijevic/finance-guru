@@ -76,6 +76,34 @@ async function getTransactions (userId) {
     return transactions;
 };
 
+const getHealthCheck = async () => {
+    let state;
+
+    try {
+        const response = await axios.get(
+            `${BASIQ_HOSTNAME}`,
+            {
+                headers: {
+                    'Authorization': `Basic ${BASIQ_API_KEY}`,
+                    'basiq-version': 2.1,
+                },
+            }
+        );
+
+        if (response.status === 200) {
+            state = 'up';
+        } else {
+            state = 'down';
+        }
+
+    } catch (err) {
+        state = 'down';
+    }
+
+    return state;
+};
+
 module.exports = {
     getTransactions,
+    getHealthCheck,
 };
