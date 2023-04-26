@@ -188,20 +188,16 @@ async function awaitJobsCompletion(jobIds) {
 
 // instruct BasiqAPI to fetch the latest transaction data for this user
 const refreshConnections = async (userId) => {
-    try {
-        const access_token = await getToken();
-        await axios.post(
-            `${BASIQ_HOSTNAME}/users/${userId}/connections/refresh`,
-            null,
-            {
-                headers: {
-                    'Authorization': `Bearer ${access_token}`,
-                },
-            }
-        );
-    } catch (err) {
-        Logger.error(`Failed to refresh connections for user ${userId}: ${err}`);
-    }
+    const access_token = await getToken();
+    return axios.post(
+        `${BASIQ_HOSTNAME}/users/${userId}/connections/refresh`,
+        null,
+        {
+            headers: {
+                'Authorization': `Bearer ${access_token}`,
+            },
+        }
+    );
 };
 
 const getUsers = async () => {
