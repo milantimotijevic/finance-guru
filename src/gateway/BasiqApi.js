@@ -128,14 +128,14 @@ const getHealthCheck = async () => {
 
 /**
  * @deprecated
- * Iterate over steps and ensure the target ones are complete
+ * Iterate over steps and ensure all are complete
  */
-function relevantStepsCompleted(jobsData, stepTitle) {
+function stepsCompleted(jobsData) {
     for (let i = 0; i < jobsData.length; i++) {
         const job = jobsData[i];
         for (let j = 0; j < job.steps.length; j++) {
             const step = jobsData[i].steps[j];
-            if (step.title === stepTitle && step.status !== 'success') {
+            if (step.status !== 'success') {
                 return false;
             }
         }
@@ -167,8 +167,7 @@ async function awaitJobsCompletion(jobIds) {
             const results = await Promise.all(promises);
             const jobsData = results.map(result => result.data);
 
-            // ensure at least 'retrieve-transactions' jobs are complete for all connections
-            if (!relevantStepsCompleted(jobsData, 'retrieve-transactions')) {
+            if (!stepsCompleted(jobsData)) {
                 retries++;
                 // force a short deplay
                 await new Promise((resolve) => setTimeout(resolve, 200));
