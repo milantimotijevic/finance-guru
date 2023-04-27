@@ -45,6 +45,33 @@ async function getToken() {
     return accessTokenWrapper.accessToken;
 }
 
+// wrapper for authenticated requests
+async function send(method, url, data) {
+    const access_token = await getToken();
+    try {
+        const result = await axios({
+            method,
+            url,
+            data,
+            headers: {
+                Authorization: `Bearer ${access_token}`,
+                'Content-Type': 'application/json',
+            }
+        });
+
+        return result.data;
+    } catch (err) {
+        // Basiq's http error format
+        if (err.response && err.response.data && err.response.data.data) {
+            throw new Boom.badData(err.response.data.data[0].detail);
+        } else if (err.request) {
+            throw new Boom.badGateway('Failed to connect to Basiq server');
+        } else {
+            throw new Boom.internal('Unknown request error');
+        }
+    }   
+}
+
 // url can either be "bare" or contain a pagination pointer in query param
 async function getTransactionsBatch(url) {
     const access_token = await getToken();
@@ -105,12 +132,6 @@ const getHealthCheck = async () => {
     try {
         const response = await axios.get(
             `${BASIQ_HOSTNAME}`,
-            {
-                headers: {
-                    'Authorization': `Basic ${BASIQ_API_KEY}`,
-                    'basiq-version': 2.1,
-                },
-            }
         );
 
         if (response.status === 200) {
@@ -126,112 +147,32 @@ const getHealthCheck = async () => {
     return state;
 };
 
-/**
- * @deprecated
- * Iterate over steps and ensure all are complete
- */
-function stepsCompleted(jobsData) {
-    for (let i = 0; i < jobsData.length; i++) {
-        const job = jobsData[i];
-        for (let j = 0; j < job.steps.length; j++) {
-            const step = jobsData[i].steps[j];
-            if (step.status !== 'success') {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-/**
- * @deprecated
- * Poll BasiqAPI and ensure all relevant jobs are completed
- */
-async function awaitJobsCompletion(jobIds) {
-    let retries = 0;
-
-    while (retries < 30) {
-        try {
-            const access_token = await getToken();
-
-            // create a promise for each job
-            const promises = jobIds.map(jobId => axios.get(`${BASIQ_HOSTNAME}/jobs/${jobId}`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${access_token}`,
-                },
-            }));
-
-            // await all promises in parallel
-            const results = await Promise.all(promises);
-            const jobsData = results.map(result => result.data);
-
-            if (!stepsCompleted(jobsData)) {
-                retries++;
-                // force a short deplay
-                await new Promise((resolve) => setTimeout(resolve, 200));
-            } else {
-                return true; // signifies the jobs are complete
-            }
-
-        } catch (err) {
-            retries++;
-            Logger.warn(`Failed to status for one or more jobs. Error: ${err}`);
-            // force a short delay
-            await new Promise((resolve) => setTimeout(resolve, 200));
-        }
-    }
-
-    return false; // we waited long enough, one or more jobs are still incomplete
-}
-
 // instruct BasiqAPI to fetch the latest transaction data for this user
 const refreshConnections = async (userId) => {
-    const access_token = await getToken();
-    return axios.post(
+    const refreshResult = await send(
+        'post',
         `${BASIQ_HOSTNAME}/users/${userId}/connections/refresh`,
         null,
-        {
-            headers: {
-                'Authorization': `Bearer ${access_token}`,
-            },
-        }
     );
+
+    return refreshResult;
 };
 
 const getUsers = async () => {
-    const access_token = await getToken();
-    const result = await axios.get(
-        `${BASIQ_HOSTNAME}/users`,
-        {
-            headers: {
-                'Authorization': `Bearer ${access_token}`,
-            },
-        }
-    );
+    const users = await send('get', `${BASIQ_HOSTNAME}/users`);
 
-    return result.data.data;
+    return users.data;
 };
 
 const createUser = async (userParam) => {
-    const access_token = await getToken();
-    const response = await axios.post(
-        `${BASIQ_HOSTNAME}/users`,
-        userParam,
-        {
-            headers: {
-                'Authorization': `Bearer ${access_token}`,
-            },
-        }
-    );
+    const user = await send('post', `${BASIQ_HOSTNAME}/users`, userParam);
 
-    return response.data;
+    return user;
 };
 
 const connectInstitution = async (userId, institutionParams) => {
-    const access_token = await getToken();
-    const response = await axios.post(
+    const connectionResponse = await send(
+        'post',
         `${BASIQ_HOSTNAME}/users/${userId}/connections`,
         {
             loginId: institutionParams.loginId,
@@ -240,28 +181,15 @@ const connectInstitution = async (userId, institutionParams) => {
                 id: institutionParams.id,
             }
         },
-        {
-            headers: {
-                'Authorization': `Bearer ${access_token}`,
-            },
-        }
     );
 
-    return response.data;
+    return connectionResponse;
 };
 
 const deleteUser = async (userId) => {
-    const access_token = await getToken();
-    const response = await axios.delete(
-        `${BASIQ_HOSTNAME}/users/${userId}`,
-        {
-            headers: {
-                'Authorization': `Bearer ${access_token}`,
-            },
-        }
-    );
+    const deletionResult = await send('delete', `${BASIQ_HOSTNAME}/users/${userId}`);
 
-    return response.data;
+    return deletionResult;
 };
 
 module.exports = {

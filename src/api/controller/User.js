@@ -42,7 +42,7 @@ const applyRoutes = (app) => {
     );
     
     // add institution connection to user
-    app.put(
+    app.post(
         '/user/:userId/connect-institution',
         auth(),
         validatePathParams(Joi.object().keys({
