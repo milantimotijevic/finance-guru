@@ -1,7 +1,7 @@
 const Joi = require('joi');
-const validatePathParams = require('../../util/validatePathParams');
 const { createValidator } = require('express-joi-validation');
 const validator = createValidator({});
+const validatePathParams = require('../../util/validatePathParams');
 const auth = require('../middleware/auth');
 const UserService = require('../../service/User');
 
@@ -12,7 +12,8 @@ const applyRoutes = (app) => {
         auth(),
         async (req, res, next) => {
             try {
-                return res.json([]);
+                const result = await UserService.getUsers();
+                return res.json(result);
             } catch (err) {
                 console.log(err);
                 return next(err);
@@ -25,7 +26,7 @@ const applyRoutes = (app) => {
         '/user',
         validator.body(Joi.object().keys({
             email: Joi.string().email().required(),
-            mobile: Joi.string().regex(/^[0-9]{10}$/).messages({'string.pattern.base': `Phone number must have 10 digits.`}).required(),
+            mobile: Joi.string().min(10).required(),
             firstName: Joi.string().required(),
             lastName: Joi.string().required(),
             institutions: Joi.array().items({
@@ -34,7 +35,6 @@ const applyRoutes = (app) => {
                 id: Joi.string().required(),
             }).optional(),
         })),
-        auth(),
         async (req, res, next) => {
             try {
                 return res.json({});
@@ -68,18 +68,14 @@ const applyRoutes = (app) => {
         }
     );
     
-    // add bank connection to user
+    // add institution connection to user
     app.put(
-        '/user/:id/connect-banks',
+        '/user/:id/connect-institutions',
         auth(),
         validatePathParams(Joi.object().keys({
             userId: Joi.string().guid().required(),
         })),
-        validator.body(Joi.array().items({
-            loginId: Joi.string().required(),
-            password: Joi.string().required(),
-            id: Joi.string().required(),
-        }).required()),
+
         async (req, res, next) => {
             try {
                 return res.json({});

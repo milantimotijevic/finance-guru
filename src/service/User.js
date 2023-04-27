@@ -1,7 +1,5 @@
 const BasiqApi = require('../gateway/BasiqApi');
 
-const getUsers = async () => BasiqApi.getUsers();
-
 const createUser = async () => {
     return {};
 };
@@ -21,7 +19,7 @@ const deleteUser = async () => {
 const refreshConnections = async (userId) => BasiqApi.refreshConnections(userId);
 
 module.exports = {
-    getUsers,
+    getUsers: BasiqApi.getUsers,
     createUser,
     updateUser,
     connectBanks,
