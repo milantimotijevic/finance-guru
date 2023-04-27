@@ -43,17 +43,21 @@ const applyRoutes = (app) => {
     
     // add institution connection to user
     app.put(
-        '/user/:id/connect-institution',
+        '/user/:userId/connect-institution',
         auth(),
         validatePathParams(Joi.object().keys({
+            userId: Joi.string().required(),
+        })),
+        validator.body(Joi.object().keys({
             loginId: Joi.string().required(),
             password: Joi.string().required(),
             id: Joi.string().required(),
         })),
-
         async (req, res, next) => {
             try {
-                return res.json({});
+                const { userId } = req.params;
+                const result = await UserService.connectInstitution(userId, req.body)
+                return res.json(result);
             } catch (err) {
                 console.log(err);
                 return next(err);
@@ -62,14 +66,16 @@ const applyRoutes = (app) => {
     );
 
     app.delete(
-        '/user/:id',
+        '/user/:userId',
         auth(),
         validatePathParams(Joi.object().keys({
-            userId: Joi.string().guid().required(),
+            userId: Joi.string().required(),
         })),
         async (req, res, next) => {
             try {
-                return res.json({});
+                const { userId } = req.params;
+                const result = await UserService.deleteUser(userId);
+                return res.json(result);
             } catch (err) {
                 console.log(err);
                 return next(err);

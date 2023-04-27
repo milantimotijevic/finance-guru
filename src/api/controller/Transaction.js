@@ -8,7 +8,7 @@ const applyRoutes = (app) => {
         '/transaction/:userId/cost-statistics',
         auth(),
         validatePathParams(Joi.object().keys({
-            userId: Joi.string().guid().required(),
+            userId: Joi.string().required(),
         })),
         async (req, res, next) => {
             try {
