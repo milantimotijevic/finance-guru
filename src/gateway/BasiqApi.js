@@ -45,8 +45,8 @@ async function getToken() {
     return accessTokenWrapper.accessToken;
 }
 
-// wrapper for authenticated requests
-async function send(method, url, data) {
+// wrapper for sending requests that require "access_token"
+async function sendAuthenticated(method, url, data) {
     const access_token = await getToken();
     try {
         const result = await axios({
@@ -74,20 +74,13 @@ async function send(method, url, data) {
 
 // url can either be "bare" or contain a pagination pointer in query param
 async function getTransactionsBatch(url) {
-    const access_token = await getToken();
     Logger.info(`Fetching transactions batch from ${url}`);
-    const response = await axios.get(
-        url,
-        {
-            headers: {
-                'Authorization': `Bearer ${access_token}`,
-            },
-        }
-    );
+
+    const transactionBatch = await sendAuthenticated('get', url);
 
     return {
-        batch: response.data ? response.data.data : [],
-        nextBatchUrl: response.data && response.data.links ? response.data.links.next : undefined,
+        batch: transactionBatch ? transactionBatch.data : [],
+        nextBatchUrl: transactionBatch && transactionBatch.links ? transactionBatch.links.next : undefined,
     };
 };
 
@@ -149,7 +142,7 @@ const getHealthCheck = async () => {
 
 // instruct BasiqAPI to fetch the latest transaction data for this user
 const refreshConnections = async (userId) => {
-    const refreshResult = await send(
+    const refreshResult = await sendAuthenticated(
         'post',
         `${BASIQ_HOSTNAME}/users/${userId}/connections/refresh`,
         null,
@@ -159,19 +152,19 @@ const refreshConnections = async (userId) => {
 };
 
 const getUsers = async () => {
-    const users = await send('get', `${BASIQ_HOSTNAME}/users`);
+    const users = await sendAuthenticated('get', `${BASIQ_HOSTNAME}/users`);
 
     return users.data;
 };
 
 const createUser = async (userParam) => {
-    const user = await send('post', `${BASIQ_HOSTNAME}/users`, userParam);
+    const user = await sendAuthenticated('post', `${BASIQ_HOSTNAME}/users`, userParam);
 
     return user;
 };
 
 const connectInstitution = async (userId, institutionParams) => {
-    const connectionResponse = await send(
+    const connectionResponse = await sendAuthenticated(
         'post',
         `${BASIQ_HOSTNAME}/users/${userId}/connections`,
         {
@@ -187,7 +180,7 @@ const connectInstitution = async (userId, institutionParams) => {
 };
 
 const deleteUser = async (userId) => {
-    const deletionResult = await send('delete', `${BASIQ_HOSTNAME}/users/${userId}`);
+    const deletionResult = await sendAuthenticated('delete', `${BASIQ_HOSTNAME}/users/${userId}`);
 
     return deletionResult;
 };
