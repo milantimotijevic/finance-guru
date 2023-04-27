@@ -1,11 +1,15 @@
+const Joi = require('joi');
+const validatePathParams = require('../../util/validatePathParams');
 const auth = require('../middleware/auth');
 const TransactionService = require('../../service/Transaction');
 
-// TODO validation
 const applyRoutes = (app) => {
     app.get(
         '/transaction/:userId/cost-statistics',
         auth(),
+        validatePathParams(Joi.object().keys({
+            userId: Joi.string().guid().required(),
+        })),
         async (req, res, next) => {
             try {
                 const { userId } = req.params;
