@@ -214,9 +214,25 @@ const getUsers = async () => {
     return result.data.data;
 };
 
+const createUser = async (userParam) => {
+    const access_token = await getToken();
+    const response = await axios.post(
+        `${BASIQ_HOSTNAME}/users`,
+        userParam,
+        {
+            headers: {
+                'Authorization': `Bearer ${access_token}`,
+            },
+        }
+    );
+
+    return response.data;
+};
+
 module.exports = {
     getTransactions,
     getHealthCheck,
     refreshConnections,
     getUsers,
+    createUser,
 };

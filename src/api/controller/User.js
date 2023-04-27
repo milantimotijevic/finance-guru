@@ -26,41 +26,14 @@ const applyRoutes = (app) => {
         '/user',
         validator.body(Joi.object().keys({
             email: Joi.string().email().required(),
-            mobile: Joi.string().min(10).required(),
+            mobile: Joi.string().regex(/^\+6(?=\d{10}$)\d{10}$/).messages({'string.pattern.base': 'Must provide a proper Australian phone number'}).required(),
             firstName: Joi.string().required(),
             lastName: Joi.string().required(),
-            institutions: Joi.array().items({
-                loginId: Joi.string().required(),
-                password: Joi.string().required(),
-                id: Joi.string().required(),
-            }).optional(),
         })),
         async (req, res, next) => {
             try {
-                return res.json({});
-            } catch (err) {
-                console.log(err);
-                return next(err);
-            }
-        }
-    );
-
-    // update basic user information
-    app.put(
-        '/user/:id',
-        auth(),
-        validatePathParams(Joi.object().keys({
-            userId: Joi.string().guid().required(),
-        })),
-        validator.body(Joi.object().keys({
-            email: Joi.string().email().optional(),
-            mobile: Joi.string().regex(/^[0-9]{10}$/).messages({'string.pattern.base': `Phone number must have 10 digits.`}).optional(),
-            firstName: Joi.string().optional(),
-            lastName: Joi.string().optional(),
-        })),
-        async (req, res, next) => {
-            try {
-                return res.json({});
+                const result = await UserService.createUser(req.body);
+                return res.json(result);
             } catch (err) {
                 console.log(err);
                 return next(err);
@@ -70,10 +43,12 @@ const applyRoutes = (app) => {
     
     // add institution connection to user
     app.put(
-        '/user/:id/connect-institutions',
+        '/user/:id/connect-institution',
         auth(),
         validatePathParams(Joi.object().keys({
-            userId: Joi.string().guid().required(),
+            loginId: Joi.string().required(),
+            password: Joi.string().required(),
+            id: Joi.string().required(),
         })),
 
         async (req, res, next) => {
