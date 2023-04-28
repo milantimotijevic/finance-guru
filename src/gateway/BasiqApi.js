@@ -32,16 +32,16 @@ async function fetchToken() {
 
 // check for valid Basiq access_token in memory and fetch a new one if needed
 async function getToken() {
-    const oneHourAgo = new Date();
-    // roughly one hour ago
-    oneHourAgo.setMinutes(oneHourAgo.getMinutes() - 58);
+    const now = new Date();
+    // set 2 minutes buffer just in case
+    now.setMinutes(now.getMinutes() - 2);
 
     // check if valid token is already in memory
-    if (!accessTokenWrapper || !accessTokenWrapper.expires || (oneHourAgo > accessTokenWrapper.expires)) {
+    if (!accessTokenWrapper || !accessTokenWrapper.expires || (now < accessTokenWrapper.expires)) {
         // valid token not found, fetching from BasiqAPI and storing for future use
         const tokenResponse = await fetchToken();
         const expires = new Date();
-        expires.setSeconds(expires.getSeconds() - tokenResponse.expires);
+        expires.setSeconds(expires.getSeconds() - tokenResponse.expires_in);
 
         // store in memory for future use
         accessTokenWrapper = {
