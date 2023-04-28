@@ -54,6 +54,11 @@ async function getToken() {
     return accessTokenWrapper.accessToken;
 }
 
+// only useful to prevent tests from being flaky
+const clearToken = () => {
+    accessTokenWrapper = undefined;
+};
+
 // wrapper for sending requests that require "access_token"
 async function sendAuthenticated(method, url, data) {
     const access_token = await getToken();
@@ -208,4 +213,5 @@ module.exports = {
     connectInstitution,
     deleteUser,
     getHealthCheck,
+    clearToken,
 };

@@ -6,6 +6,10 @@ const BasiqApi = require('../../src/gateway/BasiqApi');
 jest.mock('../../src/util/Logger');
 jest.mock('axios');
 
+afterEach(() => {
+    BasiqApi.clearToken();
+});
+
 test('getTransactions', async () => {
     axios.mockResolvedValueOnce({
         data: {
@@ -79,6 +83,14 @@ test('getTransactions', async () => {
 });
 
 test('getTransactions passes with only a few failed fetches', async () => {
+    axios.mockResolvedValueOnce({
+        data: {
+            access_token: 'testtoken',
+            token_type: 'Bearer',
+            expires_in: 3600
+        }
+    });
+
     axios.mockRejectedValueOnce(new Error('Unknown error'))
     .mockRejectedValueOnce(new Error('Unknown error'))
     .mockRejectedValueOnce(new Error('Unknown error'));
@@ -148,11 +160,19 @@ test('getTransactions passes with only a few failed fetches', async () => {
 });
 
 test('getTransactions fails with too many failed fetches', async () => {
+    axios.mockResolvedValueOnce({
+        data: {
+            access_token: 'testtoken',
+            token_type: 'Bearer',
+            expires_in: 3600
+        }
+    });
+    
     axios.mockRejectedValueOnce(new Error('Unknown error'))
     .mockRejectedValueOnce(new Error('Unknown error'))
     .mockRejectedValueOnce(new Error('Unknown error'))
     .mockRejectedValueOnce(new Error('Unknown error'))
-    .mockRejectedValueOnce(new Error('Unknown error'))
+    .mockRejectedValueOnce(new Error('Unknown error'));
 
     expect(BasiqApi.getTransactions('c9f76ad8-491d-4a81-b68b-653672dfa6e7'))
         .rejects.toThrow(new Boom.notFound('Failed to connect to Basiq server'));
