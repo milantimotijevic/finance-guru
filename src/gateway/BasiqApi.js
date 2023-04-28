@@ -12,16 +12,16 @@ async function fetchToken() {
         const data = new URLSearchParams();
         data.append('scope', 'SERVER_ACCESS');
     
-        const response = await axios.post(
-            `${BASIQ_HOSTNAME}/token`,
+        const response = await axios({
             data,
-            {
-                headers: {
-                    'Authorization': `Basic ${BASIQ_API_KEY}`,
-                    'basiq-version': 2.1,
-                },
-            }
-        );
+            url: `${BASIQ_HOSTNAME}/token`,
+            method: 'post',
+            headers: {
+                'Authorization': `Basic ${BASIQ_API_KEY}`,
+                'basiq-version': 2.1,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        });
     
         return response.data;
     } catch (err) {
@@ -182,9 +182,10 @@ const getHealthCheck = async () => {
     let state;
 
     try {
-        const response = await axios.get(
-            `${BASIQ_HOSTNAME}`,
-        );
+        const response = await axios({
+            url: BASIQ_HOSTNAME,
+            method: 'get',
+        });
 
         if (response.status === 200) {
             state = 'up';
