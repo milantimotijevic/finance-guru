@@ -7,12 +7,78 @@ jest.mock('../../src/util/Logger');
 jest.mock('axios');
 
 test('getTransactions', async () => {
-    // TODO change await axios.post() call to await axios() or mock axios.post here
-    const axiosSpy = jest.spyOn(axios, 'request');
-    axios.mockResolvedValue({cat: 'meow'});
-    axios.mockResolvedValue({cat: 'meow'});
-    axios.mockResolvedValue({cat: 'meow'});
+    // mock login
+    axios.mockResolvedValue({
+        data: {
+            access_token: 'testtoken',
+            token_type: 'Bearer',
+            expires_in: 3600
+        }
+    });
+
+    // mock fetching transaction list
+    axios.mockResolvedValue({
+        data: {
+            type: 'list',
+            count: 1,
+            size: 1,
+            data: [
+                {
+                    type: 'transaction',
+                    id: '67985501-f0b1-489b-a460-7662e85be689',
+                    status: 'posted',
+                    description: 'Contribution - Super Guarantee',
+                    amount: '609.69',
+                    account: '44f7e034-a209-4dd0-ab6c-ef7f6f42440a',
+                    balance: '0.00',
+                    direction: 'credit',
+                    class: 'transfer',
+                    institution: 'AU00000',
+                    connection: 'f8c4644e-a93d-4ea7-b1ff-59f595cda027',
+                    enrich: null,
+                    transactionDate: '',
+                    postDate: '2023-04-13T00:00:00Z',
+                    subClass: {
+                        title: 'Superannuation Funds',
+                        code: '633'
+                    },
+                    links: {
+                        self: 'https://au-api.basiq.io/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions/67985501-f0b1-489b-a460-7662e85be689',
+                        account: 'https://au-api.basiq.io/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/accounts/44f7e034-a209-4dd0-ab6c-ef7f6f42440a',
+                        institution: 'https://au-api.basiq.io/institutions/AU00000',
+                        connection: null
+                    }
+                }
+            ]
+        },
+    });
+
 	const result = await BasiqApi.getTransactions();
     
-    expect(1).toEqual(1)
+    expect(result).toEqual([{
+        type: 'transaction',
+        id: '67985501-f0b1-489b-a460-7662e85be689',
+        status: 'posted',
+        description: 'Contribution - Super Guarantee',
+        amount: '609.69',
+        account: '44f7e034-a209-4dd0-ab6c-ef7f6f42440a',
+        balance: '0.00',
+        direction: 'credit',
+        class: 'transfer',
+        institution: 'AU00000',
+        connection: 'f8c4644e-a93d-4ea7-b1ff-59f595cda027',
+        enrich: null,
+        transactionDate: '',
+        postDate: '2023-04-13T00:00:00Z',
+        subClass: {
+            title: 'Superannuation Funds',
+            code: '633'
+        },
+        links: {
+            self: 'https://au-api.basiq.io/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions/67985501-f0b1-489b-a460-7662e85be689',
+            account: 'https://au-api.basiq.io/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/accounts/44f7e034-a209-4dd0-ab6c-ef7f6f42440a',
+            institution: 'https://au-api.basiq.io/institutions/AU00000',
+            connection: null
+        }
+    }]);
 });
