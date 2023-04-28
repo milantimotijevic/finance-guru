@@ -112,6 +112,7 @@ const getTransactions = async (userId) => {
             if (err.output && err.output.statusCode
             && (err.output.statusCode >= 400 || err.output.statusCode < 500)) {
                 // the error is within the 4xx range, rethrow immediately
+                Logger.error(`Failed to fetch transaction batch due to a 4xx error. Error: ${err}`);
                 throw err;
             }
             // it might be a "temporary" error, let's consider retrying
