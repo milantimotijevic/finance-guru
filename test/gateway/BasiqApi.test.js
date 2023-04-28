@@ -1,9 +1,7 @@
 const Boom = require('@hapi/boom');
-const Logger = require('../../src/util/Logger');
 const axios = require('axios');
 const BasiqApi = require('../../src/gateway/BasiqApi');
 
-jest.mock('../../src/util/Logger');
 jest.mock('axios');
 
 afterEach(() => {
