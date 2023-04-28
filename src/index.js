@@ -38,5 +38,3 @@ server.on('listening', () => {
 
 // load Cron service for periodic users connections refreshing
 require('./service/Cron');
-
-// TODO unit tests
