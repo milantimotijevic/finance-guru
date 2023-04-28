@@ -7,6 +7,8 @@ jest.mock('../../src/util/Logger');
 jest.mock('axios');
 
 test('getTransactions', async () => {
+    const infoLogSpy = jest.spyOn(Logger, 'info');
+
     // mock login
     axios.mockResolvedValueOnce({
         data: {
@@ -81,9 +83,19 @@ test('getTransactions', async () => {
             connection: null
         }
     }]);
+
+    expect(infoLogSpy.mock.calls).toEqual([
+        [
+          'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+        ],
+        [ 'Fetched new access_token' ]
+    ]);
 });
 
 test('getTransactions passes with 3 failed fetches', async () => {
+    const infoLogSpy = jest.spyOn(Logger, 'info');
+    const warnLogSpy = jest.spyOn(Logger, 'warn');
+
     // mock login
     axios.mockResolvedValueOnce({
         data: {
@@ -161,9 +173,49 @@ test('getTransactions passes with 3 failed fetches', async () => {
             connection: null
         }
     }]);
+
+    expect(infoLogSpy.mock.calls).toEqual([
+        [
+          'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+        ],
+        [ 'Fetched new access_token' ],
+        [
+          'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+        ],
+        [
+          'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+        ],
+        [
+          'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+        ],
+        [
+          'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+        ],
+        [
+          'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+        ]
+      ]);
+
+      expect(warnLogSpy.mock.calls).toEqual([
+        [
+          "Failed to fetch a batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions, retries so far: 0. Error: TypeError: Cannot read properties of undefined (reading 'length')"
+        ],
+        [
+          'Failed to fetch a batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions, retries so far: 1. Error: Error: Failed to connect to Basiq server'
+        ],
+        [
+          'Failed to fetch a batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions, retries so far: 2. Error: Error: Failed to connect to Basiq server'
+        ],
+        [
+          'Failed to fetch a batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions, retries so far: 3. Error: Error: Failed to connect to Basiq server'
+        ]
+      ]);
 });
 
 test('getTransactions fails with 4 failed fetches', async () => {
+    const infoLogSpy = jest.spyOn(Logger, 'info');
+    const warnLogSpy = jest.spyOn(Logger, 'warn');
+
     // mock login
     axios.mockResolvedValueOnce({
         data: {
@@ -177,7 +229,50 @@ test('getTransactions fails with 4 failed fetches', async () => {
     axios.mockRejectedValueOnce(new Error('Unknown error'));
     axios.mockRejectedValueOnce(new Error('Unknown error'));
     axios.mockRejectedValueOnce(new Error('Unknown error'));
+    axios.mockRejectedValueOnce(new Error('Unknown error'));
 
 	expect(BasiqApi.getTransactions('c9f76ad8-491d-4a81-b68b-653672dfa6e7'))
     .rejects.toThrow(new Boom.notFound('Failed to connect to Basiq server'));
+
+    expect(infoLogSpy.mock.calls).toEqual(
+        [
+            [
+              'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+            ],
+            [ 'Fetched new access_token' ],
+            [
+              'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+            ],
+            [
+              'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+            ],
+            [
+              'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+            ],
+            [
+              'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+            ],
+            [
+              'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+            ],
+            [
+              'Fetching transactions batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions'
+            ]
+        ]
+    );
+
+    expect(warnLogSpy.mock.calls).toEqual([
+        [
+          "Failed to fetch a batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions, retries so far: 0. Error: TypeError: Cannot read properties of undefined (reading 'length')"
+        ],
+        [
+          'Failed to fetch a batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions, retries so far: 1. Error: Error: Failed to connect to Basiq server'
+        ],
+        [
+          'Failed to fetch a batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions, retries so far: 2. Error: Error: Failed to connect to Basiq server'
+        ],
+        [
+          'Failed to fetch a batch from undefined/users/c9f76ad8-491d-4a81-b68b-653672dfa6e7/transactions, retries so far: 3. Error: Error: Failed to connect to Basiq server'
+        ]
+      ]);
 });
