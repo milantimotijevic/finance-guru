@@ -109,6 +109,12 @@ const getTransactions = async (userId) => {
             batchUrl = nextBatchUrl;
             retries = 0;
         } catch (err) {
+            if (err.output && err.output.statusCode
+            && (err.output.statusCode >= 400 || err.output.statusCode < 500)) {
+                // the error is within the 4xx range, rethrow immediately
+                throw err;
+            }
+            // it might be a "temporary" error, let's consider retrying
             if (retries > 3) {
                 // batch fetch limit exceeded, fail the entire process
                 Logger.error(`Failed to fetch a batch from ${batchUrl}, retries limit exceeded at ${retries}. Error: ${err}`);
