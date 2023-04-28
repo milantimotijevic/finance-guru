@@ -1,8 +1,18 @@
+const Boom = require('@hapi/boom');
+const Logger = require('../util/Logger');
 const BasiqApi = require('../gateway/BasiqApi');
 
 const getCostStatistics = async (userId) => {
+    let transactions;
+
+    try {
     // fetch all transactions for this user
-    const transactions = await BasiqApi.getTransactions(userId);
+        transactions = await BasiqApi.getTransactions(userId);
+    } catch (err) {
+        Logger.error(`Error fetching transactions through BasiqApi. Error: ${err}`);
+        throw new Boom.badGateway(err.message);
+    }
+
     // init stats object to be populated during later iteration over transactions
     const debits = {
         count: 0,

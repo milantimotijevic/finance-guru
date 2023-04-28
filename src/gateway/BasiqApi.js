@@ -6,24 +6,31 @@ const { BASIQ_HOSTNAME, BASIQ_API_KEY } = process.env;
 
 let accessTokenWrapper;
 
+// fetch access_token from Basiq API
 async function fetchToken() {
-    const data = new URLSearchParams();
-    data.append('scope', 'SERVER_ACCESS');
-
-    const response = await axios.post(
-        `${BASIQ_HOSTNAME}/token`,
-        data,
-        {
-            headers: {
-                'Authorization': `Basic ${BASIQ_API_KEY}`,
-                'basiq-version': 2.1,
-            },
-        }
-    );
-
-    return response.data;
+    try {
+        const data = new URLSearchParams();
+        data.append('scope', 'SERVER_ACCESS');
+    
+        const response = await axios.post(
+            `${BASIQ_HOSTNAME}/token`,
+            data,
+            {
+                headers: {
+                    'Authorization': `Basic ${BASIQ_API_KEY}`,
+                    'basiq-version': 2.1,
+                },
+            }
+        );
+    
+        return response.data;
+    } catch (err) {
+        Logger.error(`Failed to fetch Basiq API access_token. Error: ${err}`);
+        throw new Boom.internal('Error authenticating with Basiq server');
+    } 
 }
 
+// check for valid Basiq access_token in memory and fetch a new one if needed
 async function getToken() {
     const oneHourAgo = new Date();
     // roughly one hour ago
@@ -35,6 +42,8 @@ async function getToken() {
         const tokenResponse = await fetchToken();
         const expires = new Date();
         expires.setSeconds(expires.getSeconds() - tokenResponse.expires);
+
+        // store in memory for future use
         accessTokenWrapper = {
             accessToken: tokenResponse.access_token,
             expires,
@@ -64,16 +73,14 @@ async function sendAuthenticated(method, url, data) {
         // Basiq's http error format
         if (err.response && err.response.data && err.response.data.data) {
             throw new Boom.badData(err.response.data.data[0].detail);
-        } else if (err.request) {
-            throw new Boom.badGateway('Failed to connect to Basiq server');
         } else {
-            throw new Boom.internal('Unknown request error');
+            throw new Boom.badGateway('Failed to connect to Basiq server');
         }
     }   
 }
 
 // url can either be "bare" or contain a pagination pointer in query param
-async function getTransactionsBatch(url) {
+async function getTransactionBatch(url) {
     Logger.info(`Fetching transactions batch from ${url}`);
 
     const transactionBatch = await sendAuthenticated('get', url);
@@ -93,7 +100,7 @@ const getTransactions = async (userId) => {
     // keep fetching until we no longer have "batchUrl" for the next batch
     while (batchUrl) {
         try {
-            const { batch, nextBatchUrl } = await getTransactionsBatch(batchUrl);
+            const { batch, nextBatchUrl } = await getTransactionBatch(batchUrl);
             if (batch.length > 0) {
                 transactions = transactions.concat(batch);
             }
@@ -105,9 +112,9 @@ const getTransactions = async (userId) => {
             if (retries > 3) {
                 // batch fetch limit exceeded, fail the entire process
                 Logger.error(`Failed to fetch a batch from ${batchUrl}, retries limit exceeded at ${retries}. Error: ${err}`);
-                throw new Boom.internal('Unable to communicate with BasiqAPI');
+                throw err;
             } else {
-                // fail limit not exceeded yet, increment the counter and retry this specific batch
+                // fail limit not yet exceeded, increment the counter and retry this specific batch
                 Logger.warn(`Failed to fetch a batch from ${batchUrl}, retries so far: ${retries}. Error: ${err}`);
                 retries++;
             }
@@ -116,28 +123,6 @@ const getTransactions = async (userId) => {
 
     // all batches complete
     return transactions;
-};
-
-// hit base endpoint and confirm status is 200
-const getHealthCheck = async () => {
-    let state;
-
-    try {
-        const response = await axios.get(
-            `${BASIQ_HOSTNAME}`,
-        );
-
-        if (response.status === 200) {
-            state = 'up';
-        } else {
-            state = 'down';
-        }
-
-    } catch (err) {
-        state = 'down';
-    }
-
-    return state;
 };
 
 // instruct BasiqAPI to fetch the latest transaction data for this user
@@ -185,12 +170,34 @@ const deleteUser = async (userId) => {
     return deletionResult;
 };
 
+// hit base endpoint and confirm status is 200
+const getHealthCheck = async () => {
+    let state;
+
+    try {
+        const response = await axios.get(
+            `${BASIQ_HOSTNAME}`,
+        );
+
+        if (response.status === 200) {
+            state = 'up';
+        } else {
+            state = 'down';
+        }
+
+    } catch (err) {
+        state = 'down';
+    }
+
+    return state;
+};
+
 module.exports = {
     getTransactions,
-    getHealthCheck,
     refreshConnections,
     getUsers,
     createUser,
     connectInstitution,
     deleteUser,
+    getHealthCheck,
 };
