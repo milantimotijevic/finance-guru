@@ -79,14 +79,6 @@ test('getTransactions', async () => {
 });
 
 test('getTransactions passes with only a few failed fetches', async () => {
-    axios.mockResolvedValueOnce({
-        data: {
-            access_token: 'testtoken',
-            token_type: 'Bearer',
-            expires_in: 3600
-        }
-    });
-    
     axios.mockRejectedValueOnce(new Error('Unknown error'))
     .mockRejectedValueOnce(new Error('Unknown error'))
     .mockRejectedValueOnce(new Error('Unknown error'));
@@ -156,14 +148,6 @@ test('getTransactions passes with only a few failed fetches', async () => {
 });
 
 test('getTransactions fails with too many failed fetches', async () => {
-    axios.mockResolvedValueOnce({
-        data: {
-            access_token: 'testtoken',
-            token_type: 'Bearer',
-            expires_in: 3600
-        }
-    });
-
     axios.mockRejectedValueOnce(new Error('Unknown error'))
     .mockRejectedValueOnce(new Error('Unknown error'))
     .mockRejectedValueOnce(new Error('Unknown error'))
